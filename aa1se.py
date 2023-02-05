@@ -1,6 +1,7 @@
 import tkinter
 import tkinter.filedialog
 from tkinter import *
+from tkinter import messagebox
 
 root = Tk()
 root.option_add("*Font", "Verdana 10")
@@ -36,8 +37,8 @@ def cypher():
         alll = alll.replace(char, "{"+str(i)+"}")
         i = i+1
     alll = alll.replace('№', "{130}")
-    alll = alll.replace('-', "{132}")
-    #alll = alll.replace('—', "{132}")
+    #alll = alll.replace('-', "{131}")
+    alll = alll.replace('—', "{132}")
     alll = alll.replace('«', "{<<}")
     alll = alll.replace('»', "{>>}")
     alll=alll[:-1]
@@ -68,7 +69,7 @@ def clear():
     Text.delete("1.0", "end")
 
 def load():
-    ftypes = [('Расшифрованный txt файл скрипта', '*.txt'), ('Все файлы', '*')] 
+    ftypes = [('Txt file', '*.txt'), ('All files', '*')] 
     fn = tkinter.filedialog.Open(root, filetypes = ftypes).show()
     if fn == '':
         return 
@@ -76,10 +77,21 @@ def load():
     Text.insert('1.0', open(fn).read())   
 
 def save():
-    fn = tkinter.filedialog.SaveAs(root, filetypes = [('Расшифрованный txt файл скрипта', '*.txt'), ('Все файлы', '*')]).show()
+    fn = tkinter.filedialog.SaveAs(root, filetypes = [('Txt file', '*.txt'), ('All files', '*')]).show()
     if fn == '':
         return
     open(fn, 'wt').write(Text.get('1.0', 'end'))
+
+def on_closing():
+    if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        root.destroy()
+
+def about():
+    tkinter.messagebox.showinfo(title='About', message='''This is a program to fast convert translit. It was written for Ace Attorney NDS games.
+
+Program author: dzhemvrot
+Program version: 2.0
+Program restributed using GPL-3.0 license''')
 
 #########################################################################
 
@@ -94,7 +106,7 @@ file_menu.add_separator()
 
 file_menu.add_command(
     label='Exit',
-    command=root.destroy
+    command=on_closing
 )
 
 menubar.add_cascade(
@@ -102,7 +114,7 @@ menubar.add_cascade(
     menu=file_menu
 )
 
-menubar.add_command(label='About')
+menubar.add_command(label='About', command=about)
 
 #########################################################################
 
@@ -130,5 +142,8 @@ except:
     pass
 root.title(u'Ace Attorney Script Editor')
 root.resizable(False, False)
+root.protocol("WM_DELETE_WINDOW", on_closing)
 root.bind("<Key>", lambda event: update())
+root.bind("<Control-s>", lambda event: save())
+root.bind("<Control-o>", lambda event: load())
 root.mainloop()

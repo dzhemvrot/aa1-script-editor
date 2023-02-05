@@ -231,7 +231,10 @@ class Window:
                       
 root = Tk()
 window = Window(root)
-root.iconbitmap('icon.ico')
+try:
+    root.iconbitmap('icon.ico')
+except:
+    pass
 root.title(u'AA1 Script Editor')
 root.bind("<Key>", lambda event: window.update())
 root.mainloop()

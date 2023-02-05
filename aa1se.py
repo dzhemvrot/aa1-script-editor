@@ -1,240 +1,134 @@
-from tkinter import *
+import tkinter
 import tkinter.filedialog
-from collections import deque
- 
- 
-class Window:
-    def __init__(self, master):
-        self.master = master
-        self.master.option_add("*Font", "Verdana 12")
- 
-        self.Main = Frame(self.master)
- 
-        self.stack = deque(maxlen = 10)
-        self.stackcursor = 0
- 
-        self.L1 = Label(self.Main, text = "AA1 Script Editor")
-        self.L1.pack(padx = 5, pady = 5)
- 
- 
-        #---------
- 
-        self.T1 = Text(self.Main, width = 90, height = 25)
- 
-        self.T1.tag_configure("orange", foreground = "orange", font = "Verdana 12")
-        self.T1.tag_configure("blue", foreground = "blue", font = "Verdana 12")
-        self.T1.tag_configure("purple", foreground = "purple", font = "Verdana 12")
-        self.T1.tag_configure("green", foreground = "green", font = "Verdana 12")
-        self.T1.tag_configure("red", foreground = "red", font = "Verdana 12")
- 
-        self.tags = ["orange", "blue", "purple", "green", "red"]
- 
-        self.wordlist = [ ["hidetextbox:", "wait:"],
-                          ["<b>", '(', ')'],
-                          ["1", "2", "3", "4", '5', '6', '7', '8', '9', '0'],
-                          ["<", ">", "><"],
-                          ["<p>", "person:", "nextpage_nobutton", "nextpage_button"]]
- 
-        self.T1.bind("<Return>", lambda event: self.indent(event.widget))
-         
-        self.T1.pack(padx = 5, pady = 5)
- 
-        #---------
- 
-        self.menu = Menu(self.Main)
-        #self.menu.add_command(label = "Print", command = self.print_stack)
-        self.menu.add_command(label = "Save", command = self.SaveFile)
-        self.menu.add_command(label = "Load", command = self.LoadFile)
- 
-        self.master.config(menu = self.menu)
- 
-        #self.B1 = Button(self.Main, text = "Print", width = 8, command = self.display)
-        #self.B1.pack(padx = 5, pady = 5, side = LEFT)
- 
-        self.B2 = Button(self.Main, text = "Clear", width = 8, command = self.clear)
-        self.B2.pack(padx = 5, pady = 5, side = LEFT)
- 
-        self.B3 = Button(self.Main, text = "Undo", width = 8, command = self.undo)
-        self.B3.pack(padx = 5, pady = 5, side = LEFT)
- 
-        self.B4 = Button(self.Main, text = "Redo", width = 8, command = self.redo)
-        self.B4.pack(padx = 5, pady = 5, side = LEFT)
+from tkinter import *
 
-        self.B5 = Button(self.Main, text = "Save", width = 8, command = self.SaveFile)
-        self.B5.pack(padx = 5, pady = 5, side = LEFT)
-
-        self.B5 = Button(self.Main, text = "Load", width = 8, command = self.LoadFile)
-        self.B5.pack(padx = 5, pady = 5, side = LEFT)
- 
-        self.Main.pack(padx = 5, pady = 5)
- 
- 
-    def tagHighlight(self):
-        start = "1.0"
-        end = "end"
-         
-        for mylist in self.wordlist:
-            num = int(self.wordlist.index(mylist))
- 
-            for word in mylist:
-                self.T1.mark_set("matchStart", start)
-                self.T1.mark_set("matchEnd", start)
-                self.T1.mark_set("SearchLimit", end)
- 
-                mycount = IntVar()
-                 
-                while True:
-                    index= self.T1.search(word,"matchEnd","SearchLimit", count=mycount, regexp = False)
- 
-                    if index == "": break
-                    if mycount.get() == 0: break
- 
-                    self.T1.mark_set("matchStart", index)
-                    self.T1.mark_set("matchEnd", "%s+%sc" % (index, mycount.get()))
- 
-                    preIndex = "%s-%sc" % (index, 1)
-                    postIndex = "%s+%sc" % (index, mycount.get())
-                     
-                    if self.check(index, preIndex, postIndex):
-                        self.T1.tag_add(self.tags[num], "matchStart", "matchEnd")
-                         
- 
-    def check(self, index, pre, post):
-        letters = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p",
-                   "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
- 
-        if self.T1.get(pre) == self.T1.get(index):
-            pre = index
-        else:
-            if self.T1.get(pre) in letters:
-                return 0
- 
-        if self.T1.get(post) in letters:
-            return 0
- 
-        return 1
- 
- 
-    def scan(self):
-        start = "1.0"
-        end = "end"
-        mycount = IntVar()
- 
-        regex_patterns = [r'".*"', r'#.*']
- 
-        for pattern in regex_patterns:
-            self.T1.mark_set("start", start)
-            self.T1.mark_set("end", end)
- 
-            num = int(regex_patterns.index(pattern))
- 
-            while True:
-                index = self.T1.search(pattern, "start", "end", count=mycount, regexp = True)
- 
-                if index == "": break
- 
-                if (num == 1):
-                    self.T1.tag_add(self.tags[4], index, index + " lineend")
-                elif (num == 0):
-                    self.T1.tag_add(self.tags[3], index, "%s+%sc" % (index, mycount.get()))
- 
-                self.T1.mark_set("start", "%s+%sc" % (index, mycount.get()))
- 
- 
-    def indent(self, widget):
- 
-        index1 = widget.index("insert")
-        index2 = "%s-%sc" % (index1, 1)
-        prevIndex = widget.get(index2, index1)
- 
-        prevIndentLine = widget.index(index1 + "linestart")
-        print("prevIndentLine ",prevIndentLine)
-        prevIndent = self.getIndex(prevIndentLine)
-        print("prevIndent ", prevIndent)
- 
- 
-        if prevIndex == ":":
-            widget.insert("insert", "\n" + "     ")
-            widget.mark_set("insert", "insert + 1 line + 5char")
- 
-            while widget.compare(prevIndent, ">", prevIndentLine):
-                widget.insert("insert", "     ")
-                widget.mark_set("insert", "insert + 5 chars")
-                prevIndentLine += "+5c"
-            return "break"
-         
-        elif prevIndent != prevIndentLine:
-            widget.insert("insert", "\n")
-            widget.mark_set("insert", "insert + 1 line")
- 
-            while widget.compare(prevIndent, ">", prevIndentLine):
-                widget.insert("insert", "     ")
-                widget.mark_set("insert", "insert + 5 chars")
-                prevIndentLine += "+5c"
-            return "break"
- 
- 
-    def getIndex(self, index):
-        while True:
-            if self.T1.get(index) == " ":
-                index = "%s+%sc" % (index, 1)
-            else:
-                return self.T1.index(index)
-            
-                    
-    def update(self):
-        self.stackify()
-        self.tagHighlight()
-        self.scan()
- 
-    def display(self):
-        print(self.T1.get("1.0", "end"))     
- 
-    def clear(self):
-        self.T1.delete("1.0", "end")
- 
-    def stackify(self):
-        self.stack.append(self.T1.get("1.0", "end - 1c"))
-        if self.stackcursor < 9: self.stackcursor += 1
- 
-    def undo(self):
-        if self.stackcursor != 0:
-            self.clear()
-            if self.stackcursor > 0: self.stackcursor -= 1
-            self.T1.insert("0.0", self.stack[self.stackcursor])
- 
-    def redo(self):
-        if len(self.stack) > self.stackcursor + 1:
-            self.clear()
-            if self.stackcursor < 9: self.stackcursor += 1
-            self.T1.insert("0.0", self.stack[self.stackcursor])
- 
-    def print_stack(self):
-        i = 0
-        for stack in self.stack:
-            print(str(i) + " " + stack)
-            i += 1
-
-    def LoadFile(self):
-        ftypes = [('Все файлы', '*'), ('Расшифрованный txt файл скрипта', '*.txt')] # Фильтр файлов
-        fn = tkinter.filedialog.Open(root, filetypes = ftypes).show()
-        if fn == '':
-            return 
-        self.T1.delete('1.0', 'end')    # Очищаем окно редактирования
-        self.T1.insert('1.0', open(fn).read())   # Вставляем текст в окно редактирования
-
-    def SaveFile(self):
-        fn = tkinter.filedialog.SaveAs(root, filetypes = [('Все файлы', '*'), ('Расшифрованный txt файл скрипта', '*.txt')]).show()
-        if fn == '':
-            return
-        open(fn, 'wt').write(self.T1.get('1.0', 'end'))
-                      
 root = Tk()
-window = Window(root)
+root.option_add("*Font", "Verdana 10")
+
+#########################################################################
+
+def scan():
+    start = "1.0"
+    end = "end"
+    mycount = IntVar()
+
+    regex_patterns = [r'".*"', r'#.*']
+
+    for pattern in regex_patterns:
+        Text.mark_set("start", start)
+        Text.mark_set("end", end)
+
+        num = int(regex_patterns.index(pattern))
+
+        while True:
+            index = Text.search(pattern, "start", "end", count=mycount, regexp = True)
+
+            if index == "": break
+
+            Text.mark_set("start", "%s+%sc" % (index, mycount.get()))
+
+def cypher():
+    alll = Text.get("1.0",END)
+    alphabet = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя'
+    i = 64
+    for j in range(len(alphabet)):
+        char = alphabet[j]
+        alll = alll.replace(char, "{"+str(i)+"}")
+        i = i+1
+    alll = alll.replace('№', "{130}")
+    alll = alll.replace('-', "{132}")
+    #alll = alll.replace('—', "{132}")
+    alll = alll.replace('«', "{<<}")
+    alll = alll.replace('»', "{>>}")
+    alll=alll[:-1]
+    Text.delete("0.0", "end")
+    Text.insert("0.0", alll)
+
+def decypher():
+    alll = Text.get("0.0",END)
+    alphabet = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя'
+    i = 64
+    for j in range(len(alphabet)):
+        char = alphabet[j]
+        alll = alll.replace("{"+str(i)+"}", char)
+        i = i+1
+    alll = alll.replace("{130}", '№')
+    alll = alll.replace("{131}", '-')
+    alll = alll.replace("{132}", '—')
+    alll = alll.replace("{<<}", '«')
+    alll = alll.replace("{>>}", '»')
+    alll=alll[:-1]
+    Text.delete("0.0", "end")
+    Text.insert("0.0", alll)
+
+def update():
+    scan()
+
+def clear():
+    Text.delete("1.0", "end")
+
+def load():
+    ftypes = [('Расшифрованный txt файл скрипта', '*.txt'), ('Все файлы', '*')] 
+    fn = tkinter.filedialog.Open(root, filetypes = ftypes).show()
+    if fn == '':
+        return 
+    Text.delete('1.0', 'end')
+    Text.insert('1.0', open(fn).read())   
+
+def save():
+    fn = tkinter.filedialog.SaveAs(root, filetypes = [('Расшифрованный txt файл скрипта', '*.txt'), ('Все файлы', '*')]).show()
+    if fn == '':
+        return
+    open(fn, 'wt').write(Text.get('1.0', 'end'))
+
+#########################################################################
+
+menubar = Menu(root)
+root.config(menu=menubar)
+
+file_menu = Menu(menubar,tearoff=0)
+
+file_menu.add_command(label='Open', command = load)
+file_menu.add_command(label='Save', command = save)
+file_menu.add_separator()
+
+file_menu.add_command(
+    label='Exit',
+    command=root.destroy
+)
+
+menubar.add_cascade(
+    label="File",
+    menu=file_menu
+)
+
+menubar.add_command(label='About')
+
+#########################################################################
+
+Label = Label(root, text = "Ace Attorney Script Editor")
+Label.grid(row=0, column=0, columnspan=5)
+
+Text = Text(root)
+Text.grid(row = 1, column = 0, columnspan = 5)
+
+ClearB = Button(root, text = "Clear", width = 8, command = clear)
+ClearB.grid(row = 2, column = 1, padx=20, pady=10)
+CB = Button(root, text = "Cypher", width = 8, command = cypher)
+CB.grid(row = 2, column = 2, padx=20, pady=10)
+DCB = Button(root, text = "Decypher", width = 8, command = decypher)
+DCB.grid(row = 2, column = 3, padx=20, pady=10)
+
+scrollbar = Scrollbar(root, orient='vertical', command=Text.yview)
+scrollbar.grid(row=1, column=5, sticky=NS)
+
+Text['yscrollcommand'] = scrollbar.set
+
 try:
     root.iconbitmap('icon.ico')
 except:
     pass
-root.title(u'AA1 Script Editor')
-root.bind("<Key>", lambda event: window.update())
+root.title(u'Ace Attorney Script Editor')
+root.resizable(False, False)
+root.bind("<Key>", lambda event: update())
 root.mainloop()

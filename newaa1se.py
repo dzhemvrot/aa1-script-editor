@@ -19,7 +19,7 @@ style.configure('lefttab.TNotebook', tabposition='wn')
 #########################################################################
 
 def helpweb():
-    webbrowser.open('https://github.com/dzhemvrot/latviadebate_app/blob/main/README.md', new=2)
+    webbrowser.open('https://github.com/dzhemvrot/aa1-script-editor/issues', new=2)
 
 def helps():
     win = Toplevel()
@@ -42,7 +42,11 @@ def load():
     fn = tkinter.filedialog.Open(root, filetypes = ftypes).show()
     if fn == '':
         return
-    filetext = open(fn).read()
+    try:
+        filetext = open(fn).read()
+    except:
+        tkinter.messagebox.showerror(title='Error!', message='''File not opened!''')
+        return
     result = filetext.split('[')
     #print(result)
     tab = {}
@@ -55,14 +59,14 @@ def load():
     tabControl.pack(fill='both', expand=True)
     #tabScroll = Scrollbar(tab[i], orient='horizontal', command=tabControl.yview)
     #tabScroll.pack(fill='both', expand=True, sticky=NS)
-    # this is not working so i just commented this
+    ### this is not working so i just commented this
     for i in range(len(result)):
         if result[i] != result[0]:
             globals()["textwrite_"+str(i)] = Text(tab[i])
             globals()["textwrite_"+str(i)].pack(fill='both', expand=True)
             #globals()["scrollbar_fortext_"+str(i)] = Scrollbar(tab[i], orient='vertical', command=globals()["textwrite_"+str(i)].yview)
             #globals()["scrollbar_fortext_"+str(i)].pack(fill='both', expand=True, sticky=NS)
-            # i dont have any clue how to make this stuff work ^^^
+            ### i dont have any clue how to make this stuff work ^^^
             globals()["textwrite_"+str(i)].insert('1.0', "[" + result[i])
     global length
     length = len(result)
